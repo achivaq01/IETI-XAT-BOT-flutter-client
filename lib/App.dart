@@ -2,7 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_cupertino_desktop_kit/cdk_app.dart';
 
-import 'LayoutChat.dart';
+import 'layout_chat.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
