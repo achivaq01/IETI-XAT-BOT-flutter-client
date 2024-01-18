@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_postget/util_message.dart';
 import 'package:http/http.dart' as http;
@@ -12,9 +13,10 @@ const int user = 1;
 class AppData with ChangeNotifier{
   List<Message> messageList = [];
   int newMessageId = 0;
+  Image? attachedImage;
   dynamic dataPost;
 
-  void sendMessage(String text) async {
+  Future<void> sendMessage(String text) async {
     late Message newMessage;
     if (text.startsWith('!')) {
       newMessage = Message(newMessageId, text, ai);
@@ -24,13 +26,25 @@ class AppData with ChangeNotifier{
     messageList.add(newMessage);
     newMessageId++;
 
-    loadHttpPostByChunks("http://localhost:3000/data", text);
-
+    await loadHttpPostByChunks("http://localhost:3000/data", text);
     notifyListeners();
   }
 
-  void addMessageToList(Message message) {
+  void scrollDown(ScrollController controller) {
+    controller.jumpTo(controller.position.maxScrollExtent);
+  }
 
+  void setAttachedImage(FilePickerResult fileSelected) {
+    if (!fileSelected.isSinglePick) {
+      return;
+    }
+    if (fileSelected.files[0].extension != 'jpg' ) {
+      return;
+    }
+
+    attachedImage = Image.file(File(fileSelected.files[0].path!));
+    print(attachedImage.toString());
+    notifyListeners();
   }
 
   void forceNotifyListeners() {
