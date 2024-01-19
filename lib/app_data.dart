@@ -5,8 +5,6 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_postget/util_message.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 
 const int ai = 0;
 const int user = 1;
@@ -16,6 +14,7 @@ class AppData with ChangeNotifier{
   int newMessageId = 0;
   FileImage? attachedImage = null;
   dynamic dataPost;
+  bool isResponding = false;
 
   Future<void> sendMessage(String text) async {
     late Message newMessage;
@@ -71,8 +70,8 @@ class AppData with ChangeNotifier{
   Future<void> loadHttpPostByChunks(String url, String message, int messageId) async {
     Map<String, dynamic> json;
 
-    print(attachedImage == null);
     if (attachedImage != null) {
+      FileImage resizedImage = attachedImage!;
       json = {
         'type': 'image',
         'message': message,
@@ -85,8 +84,6 @@ class AppData with ChangeNotifier{
         'image': null,
       };
     }
-    print(json.toString());
-
     String body = jsonEncode(json);
 
     // Use HttpClient for more control over the request
@@ -94,9 +91,9 @@ class AppData with ChangeNotifier{
     var request = await httpClient.postUrl(Uri.parse(url));
     request.headers.set('Content-Type', 'application/json');
     request.write(body);
+    isResponding = true;
 
     // Send the request
-    String responseString = "";
     var response = await request.close();
 
     // Use a Completer to handle the asynchronous nature of the response
@@ -106,27 +103,29 @@ class AppData with ChangeNotifier{
     // Read the response in chunks
     response.transform(utf8.decoder).listen(
           (String chunk) {
-        // Accumulate chunks
         responseBuffer.write(chunk);
+        if (!isResponding) {
+          request.abort();
+          completer.complete("cancelled");
+          isResponding = true;
+          return;
+        }
 
-        // Try to parse complete JSON objects
         try {
           var jsonData = jsonDecode(responseBuffer.toString());
           print('Received JSON: $jsonData');
           messageList[messageId].messageText += jsonData['response'];
           notifyListeners();
-          responseBuffer.clear(); // Clear the buffer after successfully parsing JSON
+          responseBuffer.clear();
         } catch (e) {
-          // JSON is incomplete, continue accumulating chunks
+          print('there was an error');
         }
       },
       onDone: () {
-        // All chunks have been received
-        print('Done receiving chunks');
+        isResponding = false;
         completer.complete(responseBuffer.toString());
       },
       onError: (error) {
-        // Handle error
         print('Error receiving chunks: $error');
         completer.completeError(error);
       },

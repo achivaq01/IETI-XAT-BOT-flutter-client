@@ -164,16 +164,20 @@ class LayoutChatState extends State<LayoutChat> {
                             height: buttonSize,
                             child: CupertinoButton(
                               onPressed: () async {
-                                String text = textController.text;
-                                await appData.sendMessage(text);
+                                if (appData.isResponding) {
+                                  appData.isResponding = false;
+                                } else {
+                                  String text = textController.text;
+                                  await appData.sendMessage(text);
+                                }
                                 //scrollDown();
                               },
                               alignment: Alignment.center,
                               padding: const EdgeInsets.all(5),
                               child: Tooltip(
-                                message: "Send",
+                                message: appData.isResponding ? "Send" : "Stop",
                                 child: Icon(
-                                  CupertinoIcons.paperplane_fill,
+                                  appData.isResponding ? CupertinoIcons.square_fill : CupertinoIcons.paperplane_fill,
                                   size: buttonSize * 0.5,
                                   color: CDKTheme.white,
                                 ),
