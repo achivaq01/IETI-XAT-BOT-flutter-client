@@ -27,11 +27,15 @@ class _MessageCardState extends State<MessageCard> {
     double maxContainerLength = MediaQuery.of(context).size.width * 0.3;
     bool isAi = appData.messageList[widget.messageIndex].author == ai;
     String messageText = appData.messageList[widget.messageIndex].messageText;
+    Image? image = appData.messageList[widget.messageIndex].image;
 
-    double constraint =
-    (messageText.length * textSize) > maxContainerLength
+    double constraint = (messageText.length * textSize) > maxContainerLength
         ? maxContainerLength
         : (messageText.length * textSize) + 30;
+    double buttonSize =
+        MediaQuery.of(context).size.width > MediaQuery.of(context).size.width
+            ? MediaQuery.of(context).size.width * 0.02
+            : MediaQuery.of(context).size.height * 0.02;
 
     return Align(
       alignment: isAi ? Alignment.centerLeft : Alignment.centerRight,
@@ -48,9 +52,18 @@ class _MessageCardState extends State<MessageCard> {
         child: Container(
           padding: const EdgeInsets.all(10),
           constraints: BoxConstraints(maxWidth: constraint),
-          child: Text(
-            messageText,
-            style: TextStyle(fontSize: textSize),
+          child: Column(
+            children: [
+              Text(
+                messageText,
+                style: TextStyle(fontSize: textSize),
+              ),
+              if (image != null)
+                Visibility(
+                  visible: true, // You can customize the visibility condition
+                  child: image,
+                ),
+            ],
           ),
         ),
       ),
