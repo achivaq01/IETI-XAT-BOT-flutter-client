@@ -166,6 +166,8 @@ class LayoutChatState extends State<LayoutChat> {
                               onPressed: () async {
                                 if (appData.isResponding) {
                                   appData.isResponding = false;
+                                  print('sending abort request');
+                                  await appData.sendStopRequest("http://localhost:3000/data");
                                 } else {
                                   String text = textController.text;
                                   await appData.sendMessage(text);

@@ -74,6 +74,8 @@ async function getLlistat(req, res) {
 // Configurar direcció tipus 'POST' amb la URL ‘/data'
 // Enlloc de fer una crida des d'un navegador, fer servir 'curl'
 // curl -X POST -F "data={\"type\":\"test\"}" -F "file=@package.json" http://localhost:3000/data
+const abortController = new AbortController();
+const signal = abortController.signal;
 app.post('/data', upload.single('file'), async (req, res) => {
   // Processar les dades del formulari i l'arxiu adjunt
   const textPost = req.body;
@@ -86,11 +88,15 @@ app.post('/data', upload.single('file'), async (req, res) => {
     type = req.body.type;
   } catch (error) {
     res.status(400).send('Sol·licitud incorrecta.')
-    console.log(error)
     return
   }
 
-  console.log(type);
+  if (type === 'stop') {
+    console.log('aborting');
+    abortController.abort();
+  }
+
+
   if (type === 'text') {
     const requestBody = {
       model: 'mistral',
@@ -101,6 +107,7 @@ app.post('/data', upload.single('file'), async (req, res) => {
       method: 'POST',
       mode: "cors",
       cache: "no-cache",
+      signal: signal,
       headers: {
         "Content-Type": "application/json",
       },
@@ -115,14 +122,17 @@ app.post('/data', upload.single('file'), async (req, res) => {
     const reader = response.body.getReader();
     while (true) {
       const { done, value } = await reader.read();
-
       if (done) {
         res.end();
         break;
       }
 
+      if (signal.aborted) {
+        console.log('signal aborted');
+        res.end();
+        break;
+      }
       const jsonData = JSON.parse(new TextDecoder().decode(value));
-      console.log(jsonData);
       
       res.write(JSON.stringify(jsonData) + '\n');
     }
@@ -139,6 +149,7 @@ app.post('/data', upload.single('file'), async (req, res) => {
       method: 'POST',
       mode: "cors",
       cache: "no-cache",
+      signal: signal,
       headers: {
         "Content-Type": "application/json",
       },
@@ -159,8 +170,12 @@ app.post('/data', upload.single('file'), async (req, res) => {
         break;
       }
 
+      if (signal.aborted) {
+        res.end();
+        break;
+      }
+
       const jsonData = JSON.parse(new TextDecoder().decode(value));
-      console.log(jsonData);
       
       res.write(JSON.stringify(jsonData) + '\n');
     }
