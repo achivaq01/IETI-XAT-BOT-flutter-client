@@ -163,7 +163,7 @@ app.post('/data', upload.single('file'), async (req, res) => {
 
       if (done || !running) {
         running = false;
-        res.end();
+        res.destroy();
         break;
       }
       const jsonData = JSON.parse(new TextDecoder().decode(value));
