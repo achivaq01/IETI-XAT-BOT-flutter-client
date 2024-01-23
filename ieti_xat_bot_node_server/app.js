@@ -74,8 +74,7 @@ async function getLlistat(req, res) {
 // Configurar direcció tipus 'POST' amb la URL ‘/data'
 // Enlloc de fer una crida des d'un navegador, fer servir 'curl'
 // curl -X POST -F "data={\"type\":\"test\"}" -F "file=@package.json" http://localhost:3000/data
-const abortController = new AbortController();
-const signal = abortController.signal;
+var running = false;
 app.post('/data', upload.single('file'), async (req, res) => {
   // Processar les dades del formulari i l'arxiu adjunt
   const textPost = req.body;
@@ -92,12 +91,14 @@ app.post('/data', upload.single('file'), async (req, res) => {
   }
 
   if (type === 'stop') {
-    console.log('aborting');
-    abortController.abort();
+    running = false;
   }
 
 
   if (type === 'text') {
+    console.log('received new query');
+
+    running = true;
     const requestBody = {
       model: 'mistral',
       prompt: req.body.message
@@ -107,7 +108,6 @@ app.post('/data', upload.single('file'), async (req, res) => {
       method: 'POST',
       mode: "cors",
       cache: "no-cache",
-      signal: signal,
       headers: {
         "Content-Type": "application/json",
       },
@@ -122,23 +122,20 @@ app.post('/data', upload.single('file'), async (req, res) => {
     const reader = response.body.getReader();
     while (true) {
       const { done, value } = await reader.read();
-      if (done) {
-        res.end();
-        break;
-      }
-
-      if (signal.aborted) {
-        console.log('signal aborted');
-        res.end();
+      if (done || !running) {
+        running = false;
+        res.destroy();
         break;
       }
       const jsonData = JSON.parse(new TextDecoder().decode(value));
+      console.log(jsonData);
       
       res.write(JSON.stringify(jsonData) + '\n');
     }
   }
 
   if (type === 'image') {
+    running = true;
     const requestBody = {
       model: 'llava',
       images: [req.body.image,],
@@ -149,7 +146,6 @@ app.post('/data', upload.single('file'), async (req, res) => {
       method: 'POST',
       mode: "cors",
       cache: "no-cache",
-      signal: signal,
       headers: {
         "Content-Type": "application/json",
       },
@@ -165,16 +161,11 @@ app.post('/data', upload.single('file'), async (req, res) => {
     while (true) {
       const { done, value } = await reader.read();
 
-      if (done) {
+      if (done || !running) {
+        running = false;
         res.end();
         break;
       }
-
-      if (signal.aborted) {
-        res.end();
-        break;
-      }
-
       const jsonData = JSON.parse(new TextDecoder().decode(value));
       
       res.write(JSON.stringify(jsonData) + '\n');

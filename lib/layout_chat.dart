@@ -165,9 +165,9 @@ class LayoutChatState extends State<LayoutChat> {
                             child: CupertinoButton(
                               onPressed: () async {
                                 if (appData.isResponding) {
-                                  appData.isResponding = false;
-                                  print('sending abort request');
                                   await appData.sendStopRequest("http://localhost:3000/data");
+                                  appData.isResponding = false;
+                                  appData.forceNotifyListeners();
                                 } else {
                                   String text = textController.text;
                                   await appData.sendMessage(text);
@@ -177,7 +177,7 @@ class LayoutChatState extends State<LayoutChat> {
                               alignment: Alignment.center,
                               padding: const EdgeInsets.all(5),
                               child: Tooltip(
-                                message: appData.isResponding ? "Send" : "Stop",
+                                message: appData.isResponding ? "Stop" : "Send",
                                 child: Icon(
                                   appData.isResponding ? CupertinoIcons.square_fill : CupertinoIcons.paperplane_fill,
                                   size: buttonSize * 0.5,

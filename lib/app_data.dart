@@ -12,7 +12,7 @@ const int user = 1;
 class AppData with ChangeNotifier {
   List<Message> messageList = [];
   int newMessageId = 0;
-  FileImage? attachedImage = null;
+  FileImage? attachedImage;
   dynamic dataPost;
   bool isResponding = false;
 
@@ -55,7 +55,7 @@ class AppData with ChangeNotifier {
     if (!fileSelected.isSinglePick) {
       return;
     }
-    if (fileSelected.files[0].extension != 'jpg') {
+    if (!['jpg', 'png', 'jpeg'].contains(fileSelected.files[0].extension)) {
       return;
     }
 
@@ -120,7 +120,7 @@ class AppData with ChangeNotifier {
       },
       onError: (error) {
         httpClient.close();
-        isResponding = true;
+        isResponding = false;
         notifyListeners();
       },
       cancelOnError: true,
@@ -132,14 +132,13 @@ class AppData with ChangeNotifier {
     json = {'type': 'stop'};
     String body = jsonEncode(json);
 
-    // Use HttpClient for more control over the request
     var httpClient = HttpClient();
     var request = await httpClient.postUrl(Uri.parse(url));
     request.headers.set('Content-Type', 'application/json');
     request.write(body);
-    isResponding = false;
 
-    // Send the request
     await request.close();
+    isResponding = false;
+    notifyListeners();
   }
 }

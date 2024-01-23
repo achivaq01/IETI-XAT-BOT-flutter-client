@@ -15,7 +15,7 @@ class App extends StatefulWidget {
 class AppState extends State<App> {
   Widget _setLayout(BuildContext context) {
     return const CDKApp(
-        defaultAppearance: "system", // system, light, dark
+        defaultAppearance: "dark", // system, light, dark
         defaultColor: "systemBlue",
         child: LayoutChat()
     );
