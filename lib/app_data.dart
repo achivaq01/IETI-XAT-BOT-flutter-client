@@ -16,6 +16,7 @@ class AppData with ChangeNotifier {
   dynamic dataPost;
   bool isResponding = false;
 
+  // Mètode tipus Future que maneja l'enviament de missatges
   Future<void> sendMessage(String text) async {
     late Message newMessage;
     if (text.isEmpty) {
@@ -47,6 +48,7 @@ class AppData with ChangeNotifier {
     notifyListeners();
   }
 
+  // Mètode que permet arrossegar la pantalla cap amunt o cap a sota
   void scrollDown(ScrollController controller) {
     //controller.jumpTo(controller.position.maxScrollExtent);
   }
@@ -67,6 +69,7 @@ class AppData with ChangeNotifier {
     notifyListeners();
   }
 
+  // Mètode tipus Future que carrega el missatge de la IA per parts
   Future<void> loadHttpPostByChunks(
       String url, String message, int messageId) async {
     Map<String, dynamic> json;
@@ -127,6 +130,7 @@ class AppData with ChangeNotifier {
     );
   }
 
+  // Mètode tipus Future que permet aturar el missatge de la IA
   Future<void> sendStopRequest(String url) async {
     Map<String, dynamic> json;
     json = {'type': 'stop'};
