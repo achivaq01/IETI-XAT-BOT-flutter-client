@@ -6,15 +6,15 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_postget/util_message.dart';
 
-const int ai = 0;
-const int user = 1;
+const int ai = 0; // Enter constant que representa la IA
+const int user = 1; // Enter constant que representa a l'usuari
 
 class AppData with ChangeNotifier {
-  List<Message> messageList = [];
-  int newMessageId = 0;
-  FileImage? attachedImage;
+  List<Message> messageList = []; // Llista de missatges que empra la classe Message
+  int newMessageId = 0; // Enter que representa l'id d'un missatge
+  FileImage? attachedImage; // L'arxiu d'una imatge prèviament sel·leccionada
   dynamic dataPost;
-  bool isResponding = false;
+  bool isResponding = false; // Booleà que comprova si el servidor està manant una resposta al client o no
 
   // Mètode tipus Future que maneja l'enviament de missatges
   Future<void> sendMessage(String text) async {
